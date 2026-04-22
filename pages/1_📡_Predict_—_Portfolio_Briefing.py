@@ -22,6 +22,7 @@ from components.data_loader import (
 from components.forecast_engine import build_forecast, roll_up
 from components.prescriptive import build_intervention_queue
 from components.llm_narrative import persona_briefing
+from components.persona_views import _generate_voice, _strip_markdown
 
 st.set_page_config(page_title="Portfolio Briefing — Fade Radar",
                    page_icon="\U0001f4bc", layout="wide")
@@ -144,12 +145,25 @@ if st.session_state.cfo_persona:
 
     if briefing_key in st.session_state:
         st.markdown(st.session_state[briefing_key])
-        st.download_button(
-            "\u2b07 Download briefing",
-            data=f"# {persona} Briefing\n\n{st.session_state[briefing_key]}",
-            file_name=f"{persona.lower().replace(' ', '_')}_briefing.md",
-            mime="text/markdown",
-        )
+        dl_col, voice_col, _ = st.columns([1, 1, 3])
+        with dl_col:
+            st.download_button(
+                "\u2b07 Download briefing",
+                data=f"# {persona} Briefing\n\n{st.session_state[briefing_key]}",
+                file_name=f"{persona.lower().replace(' ', '_')}_briefing.md",
+                mime="text/markdown",
+                key=f"dl_{persona}",
+            )
+        with voice_col:
+            audio_key = f"audio_{persona}"
+            if st.button("\U0001f50a Listen", key=f"listen_{persona}", type="secondary"):
+                plain = _strip_markdown(st.session_state[briefing_key])
+                with st.spinner("Generating voice\u2026"):
+                    audio = _generate_voice(plain)
+                if audio:
+                    st.session_state[audio_key] = audio
+            if audio_key in st.session_state:
+                st.audio(st.session_state[audio_key], format="audio/mp3")
 
 st.divider()
 
