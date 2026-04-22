@@ -196,7 +196,9 @@ st.sidebar.caption(
 # ---------------------------------------------------------------------------
 # Hero header — official Fade Radar branding
 # ---------------------------------------------------------------------------
-st.image("assets/fade_radar_logo.png", use_container_width=True)
+_, logo_col, _ = st.columns([1, 2, 1])
+with logo_col:
+    st.image("assets/fade_radar_logo.png", use_container_width=True)
 
 # ---------------------------------------------------------------------------
 # Dispatch to persona view
