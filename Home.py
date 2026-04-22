@@ -38,11 +38,20 @@ st.set_page_config(
 # ---------------------------------------------------------------------------
 st.markdown(f"""
 <style>
-    /* Sidebar background */
+    /* ---- Modern base ---- */
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    html, body, [class*="css"] {{
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }}
+    .main .block-container {{
+        padding-top: 2rem;
+        max-width: 1200px;
+    }}
+
+    /* ---- Sidebar ---- */
     [data-testid="stSidebar"] {{
         background-color: {RR_NAVY};
     }}
-    /* Sidebar text white — but NOT dropdown options */
     [data-testid="stSidebar"] > div {{
         color: white;
     }}
@@ -57,10 +66,10 @@ st.markdown(f"""
     [data-testid="stSidebar"] .stDivider {{
         color: white !important;
     }}
-    /* Selectbox input box in sidebar — dark bg with gold text */
     [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div {{
         background-color: #0E1440 !important;
         border: 1px solid #FFB800 !important;
+        border-radius: 8px;
     }}
     [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div > div {{
         color: #FFB800 !important;
@@ -69,17 +78,77 @@ st.markdown(f"""
         fill: #FFB800 !important;
         color: #FFB800 !important;
     }}
-    /* Dropdown popover — dark text on white */
     div[data-baseweb="popover"] li {{
         color: #0E1440 !important;
     }}
-    /* Metric labels */
+
+    /* ---- Metric cards ---- */
+    [data-testid="stMetric"] {{
+        background: white;
+        border: 1px solid #E8ECF4;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        box-shadow: 0 1px 3px rgba(14, 20, 64, 0.06);
+    }}
     [data-testid="stMetricLabel"] {{
         font-weight: 600;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        color: #6B7280 !important;
     }}
-    /* Red delta for negative metrics */
-    [data-testid="stMetricDelta"] svg {{
-        display: inline;
+    [data-testid="stMetricValue"] {{
+        font-weight: 700;
+        color: #0E1440 !important;
+    }}
+
+    /* ---- Section headers ---- */
+    .main h3 {{
+        color: #1E2761;
+        font-weight: 700;
+        font-size: 1.25rem;
+        border-bottom: 2px solid #E8ECF4;
+        padding-bottom: 0.5rem;
+        margin-top: 1.5rem;
+    }}
+
+    /* ---- Dataframes ---- */
+    [data-testid="stDataFrame"] {{
+        border: 1px solid #E8ECF4;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(14, 20, 64, 0.06);
+    }}
+
+    /* ---- Buttons ---- */
+    .stButton > button {{
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }}
+    .stButton > button:hover {{
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(30, 39, 97, 0.2);
+    }}
+
+    /* ---- Plotly charts ---- */
+    [data-testid="stPlotlyChart"] {{
+        background: white;
+        border: 1px solid #E8ECF4;
+        border-radius: 12px;
+        padding: 0.5rem;
+        box-shadow: 0 1px 3px rgba(14, 20, 64, 0.06);
+    }}
+
+    /* ---- Dividers ---- */
+    hr {{
+        border-color: #E8ECF4 !important;
+        margin: 1.5rem 0 !important;
+    }}
+
+    /* ---- Info boxes ---- */
+    .stAlert {{
+        border-radius: 10px;
     }}
 </style>
 """, unsafe_allow_html=True)
