@@ -65,6 +65,74 @@ def executive_narrative(context: dict[str, Any]) -> str:
     return _call_llm(prompt)
 
 
+PERSONA_PROMPTS = {
+    "Programme Director": dedent("""
+        You are briefing a **Programme Director** who needs to decide:
+        "What number do I commit to the CFO, and how confident am I?"
+
+        From the data below, produce a concise briefing (3–5 bullets):
+        - The headline number they should commit (P50) and the confidence range (P10–P90)
+        - Which programmes are most/least reliable and why
+        - Where forecast failure rates are highest and what that means for their commitment
+        - One concrete action they should take before the next CFO review
+
+        Be direct, specific, and name programme IDs and £ figures.
+    """).strip(),
+
+    "CFO": dedent("""
+        You are briefing a **CFO** who needs to decide:
+        "Can I trust this programme's number, and how much flexible capital can I release?"
+
+        From the data below, produce a concise briefing (3–5 bullets):
+        - Whether the portfolio forecast is trustworthy and why/why not
+        - How much flexible capital is genuinely available for reallocation
+        - Which programmes carry the most risk to the committed number
+        - The single biggest driver of forecast failure and the £ at stake
+
+        Be direct, specific, and quantify everything in £ and percentages.
+    """).strip(),
+
+    "Commercial Manager": dedent("""
+        You are briefing a **Commercial Manager** who needs to decide:
+        "Which supplier or contract do I intervene on this week?"
+
+        From the data below, produce a concise briefing (3–5 bullets):
+        - The top 3 suppliers causing forecast fade, with their profile and contract type
+        - Which contract type (T&M, Fixed Price, etc.) is underperforming and by how much
+        - The highest-recovery commercial intervention available right now
+        - Any supplier showing both poor OTIF and quality incidents
+
+        Be direct, name supplier IDs, contract types, and £ recovery figures.
+    """).strip(),
+
+    "Project Controls Lead": dedent("""
+        You are briefing a **Project Controls Lead** who needs to decide:
+        "Which behaviours or data-quality issues do I fix to improve forecasting over time?"
+
+        From the data below, produce a concise briefing (3–5 bullets):
+        - The current average forecast stability score and what it implies
+        - Which suppliers have the worst forecast discipline (low stability, few revisions)
+        - Which programmes have excessive scope churn driving forecast instability
+        - One process change that would most improve forecast accuracy portfolio-wide
+
+        Be specific — name supplier IDs, programme IDs, and quantify the impact.
+    """).strip(),
+}
+
+
+def persona_briefing(persona: str, context: dict[str, Any]) -> str:
+    """Generate a persona-specific briefing using the LLM."""
+    persona_prompt = PERSONA_PROMPTS.get(persona, PERSONA_PROMPTS["CFO"])
+    prompt = dedent(f"""
+        {persona_prompt}
+
+        ```json
+        {json.dumps(context, default=str, indent=2)[:6000]}
+        ```
+    """).strip()
+    return _call_llm(prompt)
+
+
 def ask_the_forecast(question: str, context: dict[str, Any]) -> str:
     """Free-text Q&A. Used by the 'Ask the Forecast' widget."""
     prompt = dedent(f"""
