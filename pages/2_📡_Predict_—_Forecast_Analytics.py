@@ -16,6 +16,8 @@ from components.driver_attribution import portfolio_waterfall, fade_curve
 st.set_page_config(page_title="Forecast Fade Analytics — Forecast Fade Radar",
                    page_icon="📐", layout="wide")
 
+st.sidebar.image("assets/fade_radar_logo.png", width=200)
+
 st.markdown("## 📐 Forecast Fade Analytics")
 st.caption("Decompose variance. Explain the 'why' behind every £ of drift.")
 

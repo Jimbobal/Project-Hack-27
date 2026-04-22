@@ -26,6 +26,8 @@ from components.llm_narrative import persona_briefing
 st.set_page_config(page_title="Portfolio Briefing — Fade Radar",
                    page_icon="\U0001f4bc", layout="wide")
 
+st.sidebar.image("assets/fade_radar_logo.png", width=200)
+
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
 
 # ---------------------------------------------------------------------------

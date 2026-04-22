@@ -164,8 +164,7 @@ portfolio_m = monthly_portfolio(latest)
 # ---------------------------------------------------------------------------
 # Sidebar: logo + persona switcher
 # ---------------------------------------------------------------------------
-st.sidebar.image("assets/rolls_royce_logo.png", width=120)
-st.sidebar.markdown("# Forecast Fade Radar")
+st.sidebar.image("assets/fade_radar_logo.png", width=200)
 st.sidebar.divider()
 
 PERSONAS = [
@@ -192,13 +191,6 @@ st.sidebar.caption(
     "Predict \u00b7 Explain \u00b7 Prescribe\n\n"
     "Rolls-Royce Supply-Chain Spend"
 )
-
-# ---------------------------------------------------------------------------
-# Hero header — official Fade Radar branding
-# ---------------------------------------------------------------------------
-logo_col, _ = st.columns([1, 4])
-with logo_col:
-    st.image("assets/fade_radar_logo.png", use_container_width=True)
 
 # ---------------------------------------------------------------------------
 # Dispatch to persona view

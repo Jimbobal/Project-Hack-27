@@ -18,6 +18,8 @@ from components.forecast_engine import build_forecast, roll_up
 st.set_page_config(page_title="What-If Scenarios — Fade Radar",
                    page_icon="\U0001f52e", layout="wide")
 
+st.sidebar.image("assets/fade_radar_logo.png", width=200)
+
 st.markdown("## \U0001f52e What-If Scenarios")
 st.caption("Simulate an intervention and see the impact on the 2026 forecast in real time.")
 

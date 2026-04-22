@@ -16,6 +16,8 @@ from components.data_loader import load_raw, build_fact, build_latest
 st.set_page_config(page_title="Risk Heatmap — Fade Radar",
                    page_icon="\U0001f525", layout="wide")
 
+st.sidebar.image("assets/fade_radar_logo.png", width=200)
+
 st.markdown("## \U0001f525 Risk Heatmap")
 st.caption("Programme vs Supplier risk matrix — instantly spot the hotspots.")
 

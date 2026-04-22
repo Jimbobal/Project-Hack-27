@@ -21,6 +21,8 @@ from components.llm_narrative import ask_the_forecast
 st.set_page_config(page_title="Ask the Forecast — Forecast Fade Radar",
                    page_icon="💬", layout="wide")
 
+st.sidebar.image("assets/fade_radar_logo.png", width=200)
+
 st.markdown("## 💬 Ask the Forecast")
 st.caption("Ask any question of the 2025 actuals and 2026 projection — answers are "
            "grounded in the provided dataset only.")
