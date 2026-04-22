@@ -47,7 +47,7 @@ portfolio_m = monthly_portfolio(latest)
 # ---------------------------------------------------------------------------
 col_logo, col_title = st.columns([1, 6])
 with col_logo:
-    st.markdown("## 📡")
+    st.image("assets/rolls_royce_logo.png", width=100)
 with col_title:
     st.markdown("## Forecast Fade Radar")
     st.caption(
