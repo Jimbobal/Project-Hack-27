@@ -50,7 +50,7 @@ def _get_elevenlabs_key() -> str | None:
         return os.environ.get("ELEVENLABS_API_KEY")
 
 
-def _generate_voice(text: str, voice: str = "Rachel") -> bytes | None:
+def _generate_voice(text: str, voice: str = "21m00Tcm4TlvDq8ikWAM") -> bytes | None:
     """Generate speech audio from text using ElevenLabs."""
     api_key = _get_elevenlabs_key()
     if not api_key:
