@@ -60,14 +60,14 @@ st.markdown(f"""
     /* Selectbox input box in sidebar — dark bg with gold text */
     [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div {{
         background-color: #0E1440 !important;
-        border: 1px solid {RR_GOLD} !important;
+        border: 1px solid #FFB800 !important;
     }}
     [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div > div {{
-        color: {RR_GOLD} !important;
+        color: #FFB800 !important;
     }}
     [data-testid="stSidebar"] .stSelectbox svg {{
-        fill: {RR_GOLD} !important;
-        color: {RR_GOLD} !important;
+        fill: #FFB800 !important;
+        color: #FFB800 !important;
     }}
     /* Dropdown popover — dark text on white */
     div[data-baseweb="popover"] li {{
