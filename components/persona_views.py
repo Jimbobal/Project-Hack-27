@@ -258,6 +258,59 @@ def render_programme_director(latest: pd.DataFrame, fact: pd.DataFrame,
 
     st.divider()
 
+    # 2026 portfolio forecast band — the hero chart
+    st.markdown("### 2026 portfolio forecast \u2014 P10 / P50 / P90 confidence band")
+    fc = build_forecast(latest, horizon_months=12)
+    portfolio_fc = roll_up(fc.portfolio, freq="M")
+
+    fig_fc = go.Figure()
+    # P90/P10 band
+    fig_fc.add_trace(go.Scatter(
+        x=portfolio_fc["period_ts"], y=portfolio_fc["p90"],
+        mode="lines", line=dict(width=0),
+        name="P90", showlegend=False, hoverinfo="skip",
+    ))
+    fig_fc.add_trace(go.Scatter(
+        x=portfolio_fc["period_ts"], y=portfolio_fc["p10"],
+        mode="lines", line=dict(width=0),
+        fill="tonexty", fillcolor="rgba(30, 39, 97, 0.15)",
+        name="P10\u2013P90 band",
+    ))
+    # P50 line
+    fig_fc.add_trace(go.Scatter(
+        x=portfolio_fc["period_ts"], y=portfolio_fc["p50"],
+        mode="lines+markers", line=dict(color=RR_NAVY, width=3),
+        name="P50 (central)",
+    ))
+    # 2025 actuals overlay
+    actual_rollup = aggregate_by(latest, by="M")
+    fig_fc.add_trace(go.Scatter(
+        x=actual_rollup["bucket"], y=actual_rollup["actual"],
+        mode="lines+markers", line=dict(color=RR_GOLD, width=2, dash="dash"),
+        name="2025 Actual",
+    ))
+    fig_fc.update_layout(
+        height=450, margin=dict(l=10, r=10, t=20, b=10),
+        yaxis_title="\u00a3 spend", xaxis_title=None,
+        hovermode="x unified", legend=dict(orientation="h", y=-0.15),
+        plot_bgcolor="white",
+    )
+    fig_fc.update_yaxes(tickprefix="\u00a3", tickformat=",.0f", gridcolor="#EEE")
+    fig_fc.update_xaxes(gridcolor="#EEE")
+    st.plotly_chart(fig_fc, use_container_width=True)
+
+    # Summary stats under the chart
+    p50_2026 = portfolio_fc["p50"].sum()
+    p10_2026 = portfolio_fc["p10"].sum()
+    p90_2026 = portfolio_fc["p90"].sum()
+    c1, c2, c3 = st.columns(3)
+    c1.metric("2026 P50 (central)", f"\u00a3{p50_2026/1e6:,.1f}M")
+    c2.metric("2026 P10 (best case)", f"\u00a3{p10_2026/1e6:,.1f}M")
+    c3.metric("2026 P90 (worst case)", f"\u00a3{p90_2026/1e6:,.1f}M",
+              delta=f"\u00b1\u00a3{(p90_2026-p10_2026)/2/1e6:,.1f}M uncertainty")
+
+    st.divider()
+
     # Programme breakdown table with conditional formatting
     st.markdown("### Programme breakdown")
     progs = progs.copy()
@@ -294,7 +347,6 @@ def render_programme_director(latest: pd.DataFrame, fact: pd.DataFrame,
 
     # Forecast confidence chart by programme
     st.markdown("### 2026 forecast confidence by programme")
-    fc = build_forecast(latest, horizon_months=12)
 
     fig = go.Figure()
     prog_ids = fc.by_programme["Programme_ID"].unique()
