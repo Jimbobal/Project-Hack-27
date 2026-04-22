@@ -57,26 +57,21 @@ st.markdown(f"""
     [data-testid="stSidebar"] .stDivider {{
         color: white !important;
     }}
-    /* Selectbox: navy background so white text is visible */
-    [data-testid="stSidebar"] [data-baseweb="select"] {{
-        background-color: rgba(255, 255, 255, 0.15) !important;
-        border-color: rgba(255, 255, 255, 0.4) !important;
-        border-radius: 6px;
+    /* Selectbox input box in sidebar — dark bg with gold text */
+    [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div {{
+        background-color: #0E1440 !important;
+        border: 1px solid {RR_GOLD} !important;
     }}
-    [data-testid="stSidebar"] [data-baseweb="select"] * {{
-        color: white !important;
+    [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div > div {{
+        color: {RR_GOLD} !important;
     }}
-    [data-testid="stSidebar"] [data-baseweb="select"] svg {{
-        fill: white !important;
+    [data-testid="stSidebar"] .stSelectbox svg {{
+        fill: {RR_GOLD} !important;
+        color: {RR_GOLD} !important;
     }}
-    /* Dropdown list items keep dark text on white background */
-    [data-testid="stSidebar"] [role="listbox"],
-    [data-testid="stSidebar"] [role="option"],
-    ul[role="listbox"] li,
-    div[data-baseweb="popover"],
-    div[data-baseweb="popover"] * {{
+    /* Dropdown popover — dark text on white */
+    div[data-baseweb="popover"] li {{
         color: #0E1440 !important;
-        background-color: white;
     }}
     /* Metric labels */
     [data-testid="stMetricLabel"] {{
