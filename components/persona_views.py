@@ -73,11 +73,41 @@ def _generate_voice(text: str, voice: str = "21m00Tcm4TlvDq8ikWAM") -> bytes | N
 
 
 def _strip_markdown(text: str) -> str:
-    """Remove markdown formatting for clean TTS input."""
+    """Remove markdown formatting and make numbers TTS-friendly."""
+    # Strip markdown bold/italic
     text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
     text = re.sub(r'\*(.+?)\*', r'\1', text)
-    text = text.replace('\u2014', ' - ').replace('\u00b7', ',')
-    text = text.replace('\u00a3', '£').replace('\u00b1', 'plus or minus ')
+    # Unicode symbols to spoken words
+    text = text.replace('\u2014', ', ')
+    text = text.replace('\u2013', ' to ')
+    text = text.replace('\u00b7', ',')
+    text = text.replace('\u00b1', 'plus or minus ')
+    text = text.replace('\u2264', 'less than or equal to ')
+    text = text.replace('\u2265', 'greater than or equal to ')
+    text = text.replace('\u00d7', 'times ')
+    # Ranges: P10-P90 -> P10 to P90, 10-20 -> 10 to 20
+    text = re.sub(r'(\w+)\u2013(\w+)', r'\1 to \2', text)
+    text = re.sub(r'(P\d+)-(P\d+)', r'\1 to \2', text)
+    text = re.sub(r'(\d+\.?\d*)-(\d+\.?\d*)', r'\1 to \2', text)
+    # Standalone dash as separator
+    text = re.sub(r' - ', ', ', text)
+    # T&M -> T and M
+    text = text.replace('T&M', 'T and M')
+    # Money: £12.3M -> 12.3 million pounds, £450k -> 450 thousand pounds
+    text = re.sub(r'£([\d,]+\.?\d*)M', r'\1 million pounds', text)
+    text = re.sub(r'£([\d,]+\.?\d*)k', r'\1 thousand pounds', text)
+    text = re.sub(r'£([\d,]+\.?\d*)', r'\1 pounds', text)
+    # Percentages: +3.1% -> plus 3.1 percent, -12.4% -> minus 12.4 percent
+    text = re.sub(r'\+(\d+\.?\d*)%', r'plus \1 percent', text)
+    text = re.sub(r'-(\d+\.?\d*)%', r'minus \1 percent', text)
+    text = re.sub(r'(\d+\.?\d*)%', r'\1 percent', text)
+    # Signed numbers without %: +3.1 -> plus 3.1, already handled by above
+    text = re.sub(r'\+(\d+\.?\d*)pp', r'plus \1 percentage points', text)
+    # Remove commas from large numbers for cleaner speech (1,234 -> 1234)
+    text = re.sub(r'(\d),(\d{3})', r'\1\2', text)
+    # IDs like SUP007, P002 — add spaces so they're spelled out
+    text = re.sub(r'(SUP)(\d+)', r'Supplier \2', text)
+    text = re.sub(r'\bP(\d{3})\b', r'Programme \1', text)
     return text
 
 
