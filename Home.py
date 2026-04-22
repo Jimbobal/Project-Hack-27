@@ -196,7 +196,7 @@ st.sidebar.caption(
 # ---------------------------------------------------------------------------
 # Hero header — official Fade Radar branding
 # ---------------------------------------------------------------------------
-_, logo_col, _ = st.columns([1, 2, 1])
+_, logo_col, _ = st.columns([2, 1, 2])
 with logo_col:
     st.image("assets/fade_radar_logo.png", use_container_width=True)
 
