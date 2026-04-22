@@ -38,15 +38,35 @@ st.set_page_config(
 # ---------------------------------------------------------------------------
 st.markdown(f"""
 <style>
-    /* Sidebar header */
+    /* Sidebar background */
     [data-testid="stSidebar"] {{
         background-color: {RR_NAVY};
     }}
-    [data-testid="stSidebar"] * {{
+    /* Sidebar text white — but NOT dropdown options */
+    [data-testid="stSidebar"] > div {{
+        color: white;
+    }}
+    [data-testid="stSidebar"] label,
+    [data-testid="stSidebar"] .stMarkdown,
+    [data-testid="stSidebar"] .stMarkdown *,
+    [data-testid="stSidebar"] span,
+    [data-testid="stSidebar"] p,
+    [data-testid="stSidebar"] h1,
+    [data-testid="stSidebar"] h2,
+    [data-testid="stSidebar"] h3,
+    [data-testid="stSidebar"] .stDivider {{
         color: white !important;
     }}
-    [data-testid="stSidebar"] .stSelectbox label {{
+    /* Selectbox: white text on the selected value display */
+    [data-testid="stSidebar"] [data-testid="stSelectbox"] > div > div {{
         color: white !important;
+    }}
+    /* Dropdown list items keep dark text on white background */
+    [data-testid="stSidebar"] [role="listbox"],
+    [data-testid="stSidebar"] [role="option"],
+    ul[role="listbox"] li,
+    div[data-baseweb="popover"] * {{
+        color: #0E1440 !important;
     }}
     /* Metric labels */
     [data-testid="stMetricLabel"] {{
