@@ -142,6 +142,12 @@ if st.session_state.cfo_persona:
 
     if briefing_key in st.session_state:
         st.markdown(st.session_state[briefing_key])
+        st.download_button(
+            "\u2b07 Download briefing",
+            data=f"# {persona} Briefing\n\n{st.session_state[briefing_key]}",
+            file_name=f"{persona.lower().replace(' ', '_')}_briefing.md",
+            mime="text/markdown",
+        )
 
 st.divider()
 

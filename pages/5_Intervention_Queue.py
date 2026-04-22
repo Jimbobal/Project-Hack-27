@@ -86,6 +86,16 @@ display = display[["rank", "target", "lever", "rule", "signal", "action", "recov
 display.columns = ["#", "Target", "Lever", "Rule", "Signal", "Action", "Recovery"]
 st.dataframe(display, hide_index=True, use_container_width=True, height=500)
 
+# Download button
+csv_data = queue[["rank", "target", "lever", "rule", "signal", "action", "recovery_gbp"]].copy()
+csv_data.columns = ["Rank", "Target", "Lever", "Rule", "Signal", "Action", "Recovery_GBP"]
+st.download_button(
+    "\u2b07 Download intervention queue (CSV)",
+    data=csv_data.to_csv(index=False),
+    file_name="intervention_queue.csv",
+    mime="text/csv",
+)
+
 # -----------------------------------------------------------------------
 # Rule library
 # -----------------------------------------------------------------------

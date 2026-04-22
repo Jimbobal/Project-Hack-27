@@ -284,6 +284,13 @@ def render_programme_director(latest: pd.DataFrame, fact: pd.DataFrame,
               .map(lambda v: f"color: {RR_RED}; font-weight: bold" if v > 20
                    else "", subset=["Fail %"]))
     st.dataframe(styled, hide_index=True, use_container_width=True)
+    st.download_button(
+        "\u2b07 Download programme breakdown (CSV)",
+        data=display.to_csv(index=False),
+        file_name="programme_breakdown.csv",
+        mime="text/csv",
+        key="dl_prog_breakdown",
+    )
 
     # Forecast confidence chart by programme
     st.markdown("### 2026 forecast confidence by programme")
@@ -535,6 +542,13 @@ def render_commercial_manager(latest: pd.DataFrame, fact: pd.DataFrame,
               .map(lambda v: f"color: {RR_RED}; font-weight: bold" if v > 20
                    else "", subset=["Fail %"]))
     st.dataframe(styled, hide_index=True, use_container_width=True, height=450)
+    st.download_button(
+        "\u2b07 Download supplier league (CSV)",
+        data=display.to_csv(index=False),
+        file_name="supplier_league.csv",
+        mime="text/csv",
+        key="dl_supplier_league",
+    )
 
     # Variance by contract type chart
     st.markdown("### Forecast fade by contract type")
