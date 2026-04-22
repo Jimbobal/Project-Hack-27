@@ -10,6 +10,9 @@ Four distinct dashboard layouts, one per persona:
 
 from __future__ import annotations
 
+import os
+import io
+import re
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -35,6 +38,62 @@ RR_RED = "#D72638"
 RR_GREEN = "#2E8B57"
 RR_LIGHT_BG = "#F5F7FB"
 RR_LIGHT_BLUE = "#CADCFC"
+
+
+# ---------------------------------------------------------------------------
+# ElevenLabs voice briefing
+# ---------------------------------------------------------------------------
+def _get_elevenlabs_key() -> str | None:
+    try:
+        return st.secrets.get("ELEVENLABS_API_KEY")
+    except Exception:
+        return os.environ.get("ELEVENLABS_API_KEY")
+
+
+def _generate_voice(text: str, voice: str = "Rachel") -> bytes | None:
+    """Generate speech audio from text using ElevenLabs."""
+    api_key = _get_elevenlabs_key()
+    if not api_key:
+        return None
+    try:
+        from elevenlabs.client import ElevenLabs
+        client = ElevenLabs(api_key=api_key)
+        audio_gen = client.text_to_speech.convert(
+            text=text,
+            voice_id=voice,
+            model_id="eleven_multilingual_v2",
+            output_format="mp3_44100_128",
+        )
+        # audio_gen is a generator of bytes chunks
+        audio_bytes = b"".join(audio_gen)
+        return audio_bytes
+    except Exception as e:
+        st.warning(f"Voice generation failed: {e}")
+        return None
+
+
+def _strip_markdown(text: str) -> str:
+    """Remove markdown formatting for clean TTS input."""
+    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
+    text = re.sub(r'\*(.+?)\*', r'\1', text)
+    text = text.replace('\u2014', ' - ').replace('\u00b7', ',')
+    text = text.replace('\u00a3', '£').replace('\u00b1', 'plus or minus ')
+    return text
+
+
+def _render_voice_button(bullets: list[str], persona: str):
+    """Render a listen button that generates and plays voice briefing."""
+    key = f"voice_{persona.replace(' ', '_')}"
+    if st.button(f"\U0001f50a Listen to briefing", key=key, type="secondary"):
+        plain_text = f"{persona} briefing. " + " ".join(
+            _strip_markdown(b) for b in bullets
+        )
+        with st.spinner("Generating voice briefing\u2026"):
+            audio = _generate_voice(plain_text)
+        if audio:
+            st.audio(audio, format="audio/mp3")
+        elif not _get_elevenlabs_key():
+            st.info("Add ELEVENLABS_API_KEY to your Streamlit secrets to enable voice briefings.")
 
 
 # ---------------------------------------------------------------------------
@@ -237,6 +296,7 @@ def render_programme_director(latest: pd.DataFrame, fact: pd.DataFrame,
     bullets = _programme_director_briefing(latest, progs)
     for b in bullets:
         st.markdown(f"- {b}")
+    _render_voice_button(bullets, "Programme Director")
     st.divider()
 
     # KPI strip
@@ -389,6 +449,7 @@ def render_cfo(latest: pd.DataFrame, fact: pd.DataFrame,
     bullets = _cfo_briefing(latest, portfolio_m)
     for b in bullets:
         st.markdown(f"- {b}")
+    _render_voice_button(bullets, "CFO")
     st.divider()
 
     # KPI strip
@@ -547,6 +608,7 @@ def render_commercial_manager(latest: pd.DataFrame, fact: pd.DataFrame,
     bullets = _commercial_briefing(latest)
     for b in bullets:
         st.markdown(f"- {b}")
+    _render_voice_button(bullets, "Commercial Manager")
     st.divider()
 
     # KPI strip
@@ -673,6 +735,7 @@ def render_project_controls(latest: pd.DataFrame, fact: pd.DataFrame,
     bullets = _controls_briefing(latest, fact)
     for b in bullets:
         st.markdown(f"- {b}")
+    _render_voice_button(bullets, "Project Controls Lead")
     st.divider()
 
     # KPI strip
