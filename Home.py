@@ -125,6 +125,32 @@ st.sidebar.caption(
 )
 
 # ---------------------------------------------------------------------------
+# Hero header
+# ---------------------------------------------------------------------------
+hero_left, hero_right = st.columns([5, 1])
+with hero_left:
+    st.markdown(f"""
+    <div style="
+        background: linear-gradient(135deg, #1E2761 0%, #0E1440 100%);
+        padding: 2.5rem 3rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+    ">
+        <h1 style="color: white; font-size: 2.8rem; margin: 0 0 0.3rem 0; letter-spacing: -1px;">
+            Fade Radar
+        </h1>
+        <p style="color: #CADCFC; font-size: 1.15rem; margin: 0 0 0.8rem 0;">
+            Predict \u00b7 Explain \u00b7 Prescribe &mdash; Rolls-Royce Supply-Chain Spend
+        </p>
+        <p style="color: rgba(255,255,255,0.6); font-size: 0.85rem; margin: 0;">
+            Project Hack 27 \u00b7 Challenge 3
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+with hero_right:
+    st.image("assets/rolls_royce_logo.png", width=120)
+
+# ---------------------------------------------------------------------------
 # Dispatch to persona view
 # ---------------------------------------------------------------------------
 if selected == "Programme Director":

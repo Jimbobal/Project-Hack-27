@@ -23,7 +23,7 @@ from components.forecast_engine import build_forecast, roll_up
 from components.prescriptive import build_intervention_queue
 from components.llm_narrative import persona_briefing
 
-st.set_page_config(page_title="CFO View — Forecast Fade Radar",
+st.set_page_config(page_title="Portfolio Briefing — Fade Radar",
                    page_icon="\U0001f4bc", layout="wide")
 
 ASSETS = Path(__file__).resolve().parent.parent / "assets"
@@ -65,8 +65,8 @@ portfolio_m = monthly_portfolio(latest)
 # ---------------------------------------------------------------------------
 # Header
 # ---------------------------------------------------------------------------
-st.markdown("## \U0001f4bc CFO View")
-st.caption("Board-ready view of portfolio spend, envelope utilisation, and 2026 outlook.")
+st.markdown("## \U0001f4bc Portfolio Briefing")
+st.caption("Board-ready view of portfolio spend, envelope utilisation, and 2026 outlook \u2014 with persona-specific briefings.")
 
 # ---------------------------------------------------------------------------
 # Persona selector with avatars
