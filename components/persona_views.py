@@ -112,18 +112,37 @@ def _strip_markdown(text: str) -> str:
 
 
 def _render_voice_button(bullets: list[str], persona: str):
-    """Render a listen button that generates and plays voice briefing."""
-    key = f"voice_{persona.replace(' ', '_')}"
-    if st.button(f"\U0001f50a Listen to briefing", key=key, type="secondary"):
+    """Auto-generate and autoplay voice briefing, with replay button."""
+    cache_key = f"voice_cache_{persona.replace(' ', '_')}"
+    btn_key = f"voice_{persona.replace(' ', '_')}"
+
+    # Auto-generate on first load for this persona (cached in session_state)
+    if cache_key not in st.session_state and _get_elevenlabs_key():
         plain_text = f"{persona} briefing. " + " ".join(
             _strip_markdown(b) for b in bullets
         )
         with st.spinner("Generating voice briefing\u2026"):
             audio = _generate_voice(plain_text)
         if audio:
-            st.audio(audio, format="audio/mp3")
-        elif not _get_elevenlabs_key():
-            st.info("Add ELEVENLABS_API_KEY to your Streamlit secrets to enable voice briefings.")
+            st.session_state[cache_key] = audio
+
+    # Autoplay if we just generated it
+    if cache_key in st.session_state:
+        st.audio(st.session_state[cache_key], format="audio/mp3", autoplay=True)
+
+    # Replay / regenerate button
+    if st.button(f"\U0001f504 Regenerate voice", key=btn_key, type="secondary"):
+        plain_text = f"{persona} briefing. " + " ".join(
+            _strip_markdown(b) for b in bullets
+        )
+        with st.spinner("Regenerating voice\u2026"):
+            audio = _generate_voice(plain_text)
+        if audio:
+            st.session_state[cache_key] = audio
+            st.rerun()
+
+    if not _get_elevenlabs_key():
+        st.info("Add ELEVENLABS_API_KEY to your Streamlit secrets to enable voice briefings.")
 
 
 # ---------------------------------------------------------------------------
