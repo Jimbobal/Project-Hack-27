@@ -14,10 +14,6 @@ from components.data_loader import load_raw, build_fact, build_latest, fade_by_r
 from components.driver_attribution import portfolio_waterfall, fade_curve
 from components.cohort_analytics import aggregate_cohort, COHORT_DIMENSIONS
 
-st.set_page_config(page_title="Forecast Fade Analytics — Forecast Fade Radar",
-                   page_icon="📐", layout="wide")
-
-st.sidebar.image("assets/fade_radar_logo.png", width=200)
 
 st.markdown("## 📐 Forecast Fade Analytics")
 st.caption("Decompose variance. Explain the 'why' behind every £ of drift.")

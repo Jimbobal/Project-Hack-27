@@ -6,10 +6,6 @@ from __future__ import annotations
 
 import streamlit as st
 
-st.set_page_config(page_title="Methodology — Forecast Fade Radar",
-                   page_icon="📊", layout="wide")
-
-st.sidebar.image("assets/fade_radar_logo.png", width=200)
 
 st.markdown("## 📊 Methodology")
 st.caption("How the Forecast Fade Radar works — fully transparent stack.")

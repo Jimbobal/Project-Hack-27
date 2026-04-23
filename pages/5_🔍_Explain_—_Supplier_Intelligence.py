@@ -14,10 +14,6 @@ import plotly.graph_objects as go
 from components.data_loader import load_raw, build_fact, build_latest, supplier_league
 from components.driver_attribution import supplier_contribution
 
-st.set_page_config(page_title="Supplier Intelligence — Forecast Fade Radar",
-                   page_icon="🤝", layout="wide")
-
-st.sidebar.image("assets/fade_radar_logo.png", width=200)
 
 st.markdown("## 🤝 Supplier Intelligence")
 st.caption("Behavioural profiling — who's driving the fade, and why.")

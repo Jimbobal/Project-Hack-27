@@ -1,5 +1,5 @@
 """
-Forecast Fade Radar — Home page with persona switcher.
+Forecast Fade Radar — entry point with grouped sidebar navigation.
 
 Four persona dashboards:
     1. Programme Director — what number do I commit, and how confident am I?
@@ -12,19 +12,10 @@ from __future__ import annotations
 
 import streamlit as st
 
-from components.data_loader import (
-    load_raw, build_fact, build_latest, monthly_portfolio,
-)
-from components.persona_views import (
-    render_programme_director,
-    render_cfo,
-    render_commercial_manager,
-    render_project_controls,
-    RR_NAVY,
-)
+from components.persona_views import RR_NAVY
 
 # ---------------------------------------------------------------------------
-# Page config
+# Page config (only place this is called — pages must not call it)
 # ---------------------------------------------------------------------------
 st.set_page_config(
     page_title="Forecast Fade Radar",
@@ -34,8 +25,45 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------------------------
+# Navigation with collapsible section groups
+# ---------------------------------------------------------------------------
+home_page = st.Page("pages/home_content.py", title="Home", icon="\U0001f3e0", default=True)
+
+predict_pages = [
+    st.Page("pages/1_📡_Predict_—_Portfolio_Briefing.py",  title="Portfolio Briefing",  icon="\U0001f4bc"),
+    st.Page("pages/2_📡_Predict_—_Forecast_Analytics.py",  title="Forecast Analytics",  icon="\U0001f4d0"),
+    st.Page("pages/3_📡_Predict_—_Forecast_Accuracy.py",   title="Forecast Accuracy",   icon="\U0001f3af"),
+    st.Page("pages/4_📡_Predict_—_What_If_Scenarios.py",   title="What-If Scenarios",   icon="\U0001f52e"),
+]
+
+explain_pages = [
+    st.Page("pages/5_🔍_Explain_—_Supplier_Intelligence.py", title="Supplier Intelligence", icon="\U0001f91d"),
+    st.Page("pages/6_🔍_Explain_—_Risk_Heatmap.py",          title="Risk Heatmap",          icon="\U0001f525"),
+]
+
+prescribe_pages = [
+    st.Page("pages/7_💊_Prescribe_—_Intervention_Queue.py",   title="Intervention Queue",  icon="\U0001f9ed"),
+    st.Page("pages/8_💊_Prescribe_—_Ask_the_Forecast.py",     title="Ask the Forecast",    icon="\U0001f4ac"),
+]
+
+other_pages = [
+    st.Page("pages/10_📊_Methodology.py", title="Methodology", icon="\U0001f4ca"),
+]
+
+nav = st.navigation({
+    "":            [home_page],
+    "Predict":     predict_pages,
+    "Explain":     explain_pages,
+    "Prescribe":   prescribe_pages,
+    "Reference":   other_pages,
+})
+
+# ---------------------------------------------------------------------------
 # Global Rolls-Royce styling
 # ---------------------------------------------------------------------------
+st.sidebar.image("assets/fade_radar_logo.png", width=200)
+st.sidebar.divider()
+
 st.markdown(f"""
 <style>
     /* ---- Modern base ---- */
@@ -65,21 +93,6 @@ st.markdown(f"""
     [data-testid="stSidebar"] h3,
     [data-testid="stSidebar"] .stDivider {{
         color: white !important;
-    }}
-    [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div {{
-        background-color: #0E1440 !important;
-        border: 1px solid #FFB800 !important;
-        border-radius: 8px;
-    }}
-    [data-testid="stSidebar"] .stSelectbox div[data-baseweb="select"] > div > div {{
-        color: #FFB800 !important;
-    }}
-    [data-testid="stSidebar"] .stSelectbox svg {{
-        fill: #FFB800 !important;
-        color: #FFB800 !important;
-    }}
-    div[data-baseweb="popover"] li {{
-        color: #0E1440 !important;
     }}
 
     /* ---- Metric cards ---- */
@@ -153,39 +166,6 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# ---------------------------------------------------------------------------
-# Load data (cached)
-# ---------------------------------------------------------------------------
-raw = load_raw()
-fact = build_fact(raw)
-latest = build_latest(fact)
-portfolio_m = monthly_portfolio(latest)
-
-# ---------------------------------------------------------------------------
-# Sidebar: logo + persona switcher
-# ---------------------------------------------------------------------------
-st.sidebar.image("assets/fade_radar_logo.png", width=200)
-st.sidebar.divider()
-
-PERSONAS = [
-    "Programme Director",
-    "CFO",
-    "Commercial Manager",
-    "Project Controls Lead",
-]
-
-if "persona" not in st.session_state:
-    st.session_state.persona = PERSONAS[0]
-
-selected = st.sidebar.selectbox(
-    "Select persona",
-    PERSONAS,
-    index=PERSONAS.index(st.session_state.persona),
-    key="persona_selector",
-)
-st.session_state.persona = selected
-
-st.sidebar.divider()
 st.sidebar.caption(
     "Built for Project Hack 27 \u00b7 Challenge 3\n\n"
     "Predict \u00b7 Explain \u00b7 Prescribe\n\n"
@@ -193,13 +173,6 @@ st.sidebar.caption(
 )
 
 # ---------------------------------------------------------------------------
-# Dispatch to persona view
+# Run the selected page
 # ---------------------------------------------------------------------------
-if selected == "Programme Director":
-    render_programme_director(latest, fact, portfolio_m)
-elif selected == "CFO":
-    render_cfo(latest, fact, portfolio_m)
-elif selected == "Commercial Manager":
-    render_commercial_manager(latest, fact, portfolio_m)
-elif selected == "Project Controls Lead":
-    render_project_controls(latest, fact, portfolio_m)
+nav.run()

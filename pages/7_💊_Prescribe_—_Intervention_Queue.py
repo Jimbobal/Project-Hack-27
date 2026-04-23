@@ -13,10 +13,6 @@ import plotly.express as px
 from components.data_loader import load_raw, build_fact, build_latest
 from components.prescriptive import build_intervention_queue, RULES
 
-st.set_page_config(page_title="Intervention Queue — Forecast Fade Radar",
-                   page_icon="🧭", layout="wide")
-
-st.sidebar.image("assets/fade_radar_logo.png", width=200)
 
 st.markdown("## 🧭 Intervention Queue")
 st.caption("Ranked prescriptive actions — estimated £ recovery and lever type.")

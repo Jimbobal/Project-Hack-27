@@ -18,12 +18,6 @@ from components.forecast_accuracy import (
     driver_impact, entity_drilldown, DRIVERS,
 )
 
-st.set_page_config(
-    page_title="Forecast Accuracy — Forecast Fade Radar",
-    page_icon="\U0001f4e1", layout="wide",
-)
-
-st.sidebar.image("assets/fade_radar_logo.png", width=200)
 
 st.markdown("## \U0001f4e1 Forecast Accuracy")
 st.caption(
