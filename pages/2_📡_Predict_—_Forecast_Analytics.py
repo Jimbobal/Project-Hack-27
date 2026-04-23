@@ -127,12 +127,6 @@ st.caption(
 # Cohort fade breakdowns
 # -----------------------------------------------------------------------
 st.markdown("### Cohort fade breakdowns")
-st.caption(
-    "How does forecast fade vary by supplier profile, region, payment terms, "
-    "and programme phase? Bars show total absolute fade (£) per cohort — "
-    "the bigger the bar, the more that cohort's forecasts shrink between "
-    "first and final revision."
-)
 
 COHORT_COLOURS = {
     "Supplier Profile": "#1E2761",
@@ -141,47 +135,31 @@ COHORT_COLOURS = {
     "Programme Phase":  "#D72638",
 }
 
-cohort_view = st.radio(
-    "Metric view:",
-    ["Total Fade + Failure Rate", "Median Error + Failure Rate"],
-    horizontal=True, key="cohort_metric_toggle",
-)
+fade_tab, median_tab = st.tabs([
+    "\U0001f4c9 Total Fade + Failure Rate",
+    "\U0001f4ca Median Error + Failure Rate",
+])
 
-for label, col in COHORT_DIMENSIONS.items():
+def _cohort_chart(container, label, col, bar_x, bar_text_fn, x_title, chart_title):
+    """Render one cohort chart inside the given Streamlit container."""
     cdf = aggregate_cohort(fact, col)
     if cdf.empty:
-        st.info(f"No data available for {label}.")
-        continue
+        container.info(f"No data available for {label}.")
+        return
 
     bar_colour = COHORT_COLOURS.get(label, "#1E2761")
     fig_c = go.Figure()
 
-    if cohort_view == "Total Fade + Failure Rate":
-        fig_c.add_trace(go.Bar(
-            y=cdf[col],
-            x=cdf["fade_abs_gbp"],
-            orientation="h",
-            marker_color=bar_colour,
-            text=cdf["fade_abs_gbp"].apply(lambda v: f"\u00a3{v/1e6:,.1f}M"),
-            textposition="outside",
-            name="Total fade (\u00a3)",
-        ))
-        x_title = "Total fade (\u00a3)"
-    else:
-        fig_c.add_trace(go.Bar(
-            y=cdf[col],
-            x=cdf["median_abs_error_gbp"],
-            orientation="h",
-            marker_color=bar_colour,
-            text=cdf["median_abs_error_gbp"].apply(
-                lambda v: f"\u00a3{v/1e6:,.2f}M" if v >= 1e6 else f"\u00a3{v/1e3:,.0f}k"
-            ),
-            textposition="outside",
-            name="Median |error| (\u00a3)",
-        ))
-        x_title = "Median absolute error (\u00a3)"
+    fig_c.add_trace(go.Bar(
+        y=cdf[col],
+        x=cdf[bar_x],
+        orientation="h",
+        marker_color=bar_colour,
+        text=cdf[bar_x].apply(bar_text_fn),
+        textposition="outside",
+        name=x_title,
+    ))
 
-    # Failure rate on secondary top x-axis (both views)
     fig_c.add_trace(go.Scatter(
         y=cdf[col],
         x=cdf["failure_rate"] * 100,
@@ -195,8 +173,7 @@ for label, col in COHORT_DIMENSIONS.items():
     ))
 
     fig_c.update_layout(
-        title=f"Forecast fade by {label}" if cohort_view.startswith("Total")
-              else f"Median forecast error by {label}",
+        title=chart_title,
         title_font_size=14,
         height=max(300, len(cdf) * 55),
         margin=dict(l=10, r=10, t=40, b=40),
@@ -218,4 +195,35 @@ for label, col in COHORT_DIMENSIONS.items():
         legend=dict(orientation="h", y=-0.25, x=0.5, xanchor="center"),
         hovermode="y unified",
     )
-    st.plotly_chart(fig_c, use_container_width=True)
+    container.plotly_chart(fig_c, use_container_width=True)
+
+
+with fade_tab:
+    st.caption(
+        "Bars show total absolute fade (\u00a3) per cohort \u2014 "
+        "the bigger the bar, the more that cohort\u2019s forecasts shrink "
+        "between first and final revision. Red dotted line = failure rate."
+    )
+    for label, col in COHORT_DIMENSIONS.items():
+        _cohort_chart(
+            st, label, col,
+            bar_x="fade_abs_gbp",
+            bar_text_fn=lambda v: f"\u00a3{v/1e6:,.1f}M",
+            x_title="Total fade (\u00a3)",
+            chart_title=f"Forecast fade by {label}",
+        )
+
+with median_tab:
+    st.caption(
+        "Bars show the median absolute forecast error (\u00a3) per cohort \u2014 "
+        "a robust measure of typical error size, resistant to outliers. "
+        "Red dotted line = failure rate."
+    )
+    for label, col in COHORT_DIMENSIONS.items():
+        _cohort_chart(
+            st, label, col,
+            bar_x="median_abs_error_gbp",
+            bar_text_fn=lambda v: f"\u00a3{v/1e6:,.2f}M" if v >= 1e6 else f"\u00a3{v/1e3:,.0f}k",
+            x_title="Median |error| (\u00a3)",
+            chart_title=f"Median forecast error by {label}",
+        )
