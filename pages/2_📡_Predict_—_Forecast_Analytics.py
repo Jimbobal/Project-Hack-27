@@ -10,12 +10,12 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
-from components.data_loader import load_raw, build_fact, build_latest, fade_by_revision
+from components.data_loader import load_raw, build_fact, build_latest
 from components.driver_attribution import portfolio_waterfall, fade_curve
 from components.cohort_analytics import aggregate_cohort, COHORT_DIMENSIONS
 
 
-st.markdown("## 📐 Forecast Fade Analytics")
+st.markdown("## 📐 Forecast Fade")
 st.caption("Decompose variance. Explain the 'why' behind every £ of drift.")
 
 raw = load_raw()
@@ -96,31 +96,6 @@ st.caption(
     "the wider the error — and the lower the confidence. The goal of our "
     "prescriptive levers is to **compress this curve** by intervening early "
     "on the suppliers and programmes most responsible for the drift."
-)
-
-# -----------------------------------------------------------------------
-# Revision drift
-# -----------------------------------------------------------------------
-st.markdown("### Revision-by-revision drift")
-
-rev = fade_by_revision(fact)
-fig3 = go.Figure(go.Bar(
-    x=rev["Revision_Number"], y=rev["mean_abs_change"],
-    marker_color="#CADCFC",
-    text=rev["mean_abs_change"].apply(lambda x: f"£{x/1e3:,.0f}k"),
-    textposition="outside",
-))
-fig3.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10),
-                   plot_bgcolor="white",
-                   xaxis_title="Revision number",
-                   yaxis_title="Mean |forecast change|")
-fig3.update_yaxes(tickprefix="£", tickformat=",.0f", gridcolor="#EEE")
-st.plotly_chart(fig3, use_container_width=True)
-
-st.caption(
-    "A well-behaved forecast system should show shrinking revision movements over "
-    "time — each revision should carry less new information. If revisions late in "
-    "the cycle still swing heavily, the baseline is structurally wrong."
 )
 
 # -----------------------------------------------------------------------

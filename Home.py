@@ -34,7 +34,7 @@ home_page = st.Page("pages/home_content.py", title="Home", icon="\U0001f3e0", de
 
 predict_pages = [
     st.Page("pages/1_📡_Predict_—_Portfolio_Briefing.py",  title="Portfolio Briefing",  icon="\U0001f4bc"),
-    st.Page("pages/2_📡_Predict_—_Forecast_Analytics.py",  title="Forecast Analytics",  icon="\U0001f4d0"),
+    st.Page("pages/2_📡_Predict_—_Forecast_Analytics.py",  title="Forecast Fade",       icon="\U0001f4d0"),
     st.Page("pages/3_📡_Predict_—_Forecast_Accuracy.py",   title="Forecast Accuracy",   icon="\U0001f3af"),
     st.Page("pages/4_📡_Predict_—_What_If_Scenarios.py",   title="What-If Scenarios",   icon="\U0001f52e"),
 ]
