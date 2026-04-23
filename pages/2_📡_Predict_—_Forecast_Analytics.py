@@ -141,28 +141,77 @@ COHORT_COLOURS = {
     "Programme Phase":  "#D72638",
 }
 
+from plotly.subplots import make_subplots
+
 for label, col in COHORT_DIMENSIONS.items():
     cdf = aggregate_cohort(fact, col)
     if cdf.empty:
         st.info(f"No data available for {label}.")
         continue
 
-    fig_c = go.Figure(go.Bar(
+    bar_colour = COHORT_COLOURS.get(label, "#1E2761")
+
+    fig_c = make_subplots(
+        specs=[[{"secondary_y": True}]],
+    )
+
+    # Bars: total fade (primary x-axis)
+    fig_c.add_trace(go.Bar(
         y=cdf[col],
         x=cdf["fade_abs_gbp"],
         orientation="h",
-        marker_color=COHORT_COLOURS.get(label, "#1E2761"),
-        text=cdf["fade_abs_gbp"].apply(lambda v: f"£{v/1e6:,.1f}M"),
+        marker_color=bar_colour,
+        text=cdf["fade_abs_gbp"].apply(lambda v: f"\u00a3{v/1e6:,.1f}M"),
         textposition="outside",
+        name="Total fade (\u00a3)",
+    ), secondary_y=False)
+
+    # Markers: mean absolute error (primary x-axis, overlaid)
+    fig_c.add_trace(go.Scatter(
+        y=cdf[col],
+        x=cdf["mean_abs_error_gbp"],
+        mode="markers+text",
+        marker=dict(color="#CADCFC", size=12, symbol="diamond",
+                    line=dict(width=1, color=bar_colour)),
+        text=cdf["mean_abs_error_gbp"].apply(lambda v: f"\u00a3{v/1e3:,.0f}k"),
+        textposition="middle right",
+        name="Mean |error| (\u00a3)",
+    ), secondary_y=False)
+
+    # Line: failure rate (secondary y-axis mapped to x2)
+    fig_c.add_trace(go.Scatter(
+        y=cdf[col],
+        x=cdf["failure_rate"] * 100,
+        mode="lines+markers+text",
+        marker=dict(color="#D72638", size=10),
+        line=dict(color="#D72638", width=2, dash="dot"),
+        text=cdf["failure_rate"].apply(lambda v: f"{v*100:.0f}%"),
+        textposition="middle right",
+        name="Failure rate (%)",
+        xaxis="x2",
     ))
+
     fig_c.update_layout(
         title=f"Forecast fade by {label}",
         title_font_size=14,
-        height=max(260, len(cdf) * 40),
-        margin=dict(l=10, r=100, t=40, b=10),
+        height=max(300, len(cdf) * 50),
+        margin=dict(l=10, r=10, t=40, b=40),
         plot_bgcolor="white",
-        xaxis_title="Total fade (£)",
         yaxis=dict(autorange="reversed"),
+        xaxis=dict(
+            title="Total fade / Mean |error| (\u00a3)",
+            tickprefix="\u00a3", tickformat=",.0f", gridcolor="#EEE",
+            side="bottom",
+        ),
+        xaxis2=dict(
+            title="Failure rate (%)",
+            ticksuffix="%",
+            overlaying="x",
+            side="top",
+            gridcolor="rgba(0,0,0,0)",
+            range=[0, max(cdf["failure_rate"].max() * 100 * 1.3, 10)],
+        ),
+        legend=dict(orientation="h", y=-0.25, x=0.5, xanchor="center"),
+        hovermode="y unified",
     )
-    fig_c.update_xaxes(tickprefix="£", tickformat=",.0f", gridcolor="#EEE")
     st.plotly_chart(fig_c, use_container_width=True)
