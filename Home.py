@@ -75,33 +75,31 @@ st.markdown(f"""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }}
     .main .block-container {{
-        padding-top: 0rem;
+        padding-top: 3.5rem;
         max-width: 1200px;
     }}
 
-    /* Kill Streamlit's default top padding and header gap */
-    .stApp > header {{
-        background-color: transparent;
-    }}
-    .stMainBlockContainer {{
-        padding-top: 0 !important;
+    /* Hide Streamlit's default header bar */
+    header[data-testid="stHeader"] {{
+        display: none !important;
     }}
 
-    /* ---- Top banner ---- */
+    /* ---- Fixed top banner ---- */
     .fade-banner {{
         background: linear-gradient(135deg, #0E1440 0%, #1E2761 60%, #2A3580 100%);
-        border-radius: 0;
-        padding: 0.7rem 2rem;
-        margin: -1rem -1rem 1rem -1rem;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 999999;
+        padding: 0.6rem 2rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        box-shadow: 0 2px 8px rgba(14, 20, 64, 0.25);
-        position: relative;
-        z-index: 999;
+        box-shadow: 0 2px 8px rgba(14, 20, 64, 0.3);
     }}
     .fade-banner img {{
-        height: 45px;
+        height: 40px;
     }}
     .fade-banner .banner-tagline {{
         color: #FFB800;
