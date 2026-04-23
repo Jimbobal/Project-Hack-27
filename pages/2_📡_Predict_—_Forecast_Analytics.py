@@ -12,6 +12,7 @@ import plotly.graph_objects as go
 
 from components.data_loader import load_raw, build_fact, build_latest, fade_by_revision
 from components.driver_attribution import portfolio_waterfall, fade_curve
+from components.cohort_analytics import aggregate_cohort, COHORT_DIMENSIONS
 
 st.set_page_config(page_title="Forecast Fade Analytics — Forecast Fade Radar",
                    page_icon="📐", layout="wide")
@@ -125,3 +126,47 @@ st.caption(
     "time — each revision should carry less new information. If revisions late in "
     "the cycle still swing heavily, the baseline is structurally wrong."
 )
+
+# -----------------------------------------------------------------------
+# Cohort fade breakdowns
+# -----------------------------------------------------------------------
+st.markdown("### Cohort fade breakdowns")
+st.caption(
+    "How does forecast fade vary by supplier profile, region, payment terms, "
+    "and programme phase? Bars show total absolute fade (£) per cohort — "
+    "the bigger the bar, the more that cohort's forecasts shrink between "
+    "first and final revision."
+)
+
+COHORT_COLOURS = {
+    "Supplier Profile": "#1E2761",
+    "Region":           "#FFB800",
+    "Payment Terms":    "#2E8B57",
+    "Programme Phase":  "#D72638",
+}
+
+for label, col in COHORT_DIMENSIONS.items():
+    cdf = aggregate_cohort(fact, col)
+    if cdf.empty:
+        st.info(f"No data available for {label}.")
+        continue
+
+    fig_c = go.Figure(go.Bar(
+        y=cdf[col],
+        x=cdf["fade_abs_gbp"],
+        orientation="h",
+        marker_color=COHORT_COLOURS.get(label, "#1E2761"),
+        text=cdf["fade_abs_gbp"].apply(lambda v: f"£{v/1e6:,.1f}M"),
+        textposition="outside",
+    ))
+    fig_c.update_layout(
+        title=f"Forecast fade by {label}",
+        title_font_size=14,
+        height=max(260, len(cdf) * 40),
+        margin=dict(l=10, r=100, t=40, b=10),
+        plot_bgcolor="white",
+        xaxis_title="Total fade (£)",
+        yaxis=dict(autorange="reversed"),
+    )
+    fig_c.update_xaxes(tickprefix="£", tickformat=",.0f", gridcolor="#EEE")
+    st.plotly_chart(fig_c, use_container_width=True)
