@@ -12,6 +12,9 @@ from __future__ import annotations
 
 import streamlit as st
 
+import base64
+from pathlib import Path
+
 from components.persona_views import RR_NAVY
 
 # ---------------------------------------------------------------------------
@@ -72,8 +75,30 @@ st.markdown(f"""
         font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     }}
     .main .block-container {{
-        padding-top: 2rem;
+        padding-top: 0.5rem;
         max-width: 1200px;
+    }}
+
+    /* ---- Top banner ---- */
+    .fade-banner {{
+        background: linear-gradient(135deg, #0E1440 0%, #1E2761 60%, #2A3580 100%);
+        border-radius: 12px;
+        padding: 0.8rem 2rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 8px rgba(14, 20, 64, 0.15);
+    }}
+    .fade-banner img {{
+        height: 50px;
+    }}
+    .fade-banner .banner-tagline {{
+        color: #FFB800;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
     }}
 
     /* ---- Sidebar ---- */
@@ -171,6 +196,19 @@ st.sidebar.caption(
     "Predict \u00b7 Explain \u00b7 Prescribe\n\n"
     "Rolls-Royce Supply-Chain Spend"
 )
+
+# ---------------------------------------------------------------------------
+# Top banner
+# ---------------------------------------------------------------------------
+_logo_path = Path(__file__).resolve().parent / "assets" / "fade_radar_logo.png"
+_logo_b64 = base64.b64encode(_logo_path.read_bytes()).decode()
+
+st.markdown(f"""
+<div class="fade-banner">
+    <img src="data:image/png;base64,{_logo_b64}" alt="Forecast Fade Radar" />
+    <span class="banner-tagline">Predict \u00b7 Explain \u00b7 Prescribe</span>
+</div>
+""", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------------------
 # Run the selected page
