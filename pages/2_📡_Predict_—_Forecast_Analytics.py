@@ -135,95 +135,49 @@ COHORT_COLOURS = {
     "Programme Phase":  "#D72638",
 }
 
-fade_tab, median_tab = st.tabs([
-    "\U0001f4c9 Total Fade + Failure Rate",
-    "\U0001f4ca Median Error + Failure Rate",
-])
+st.caption(
+    "Bars show total absolute fade (\u00a3) per cohort. "
+    "Hover over any bar for median error and failure rate."
+)
 
-def _cohort_chart(container, label, col, bar_x, bar_text_fn, x_title, chart_title):
-    """Render one cohort chart inside the given Streamlit container."""
+for label, col in COHORT_DIMENSIONS.items():
     cdf = aggregate_cohort(fact, col)
     if cdf.empty:
-        container.info(f"No data available for {label}.")
-        return
+        st.info(f"No data available for {label}.")
+        continue
 
     bar_colour = COHORT_COLOURS.get(label, "#1E2761")
-    fig_c = go.Figure()
 
-    fig_c.add_trace(go.Bar(
-        y=cdf[col],
-        x=cdf[bar_x],
-        orientation="h",
-        marker_color=bar_colour,
-        text=cdf[bar_x].apply(bar_text_fn),
-        textposition="outside",
-        name=x_title,
+    customdata = list(zip(
+        cdf["median_abs_error_gbp"],
+        cdf["failure_rate"] * 100,
     ))
 
-    fig_c.add_trace(go.Scatter(
+    fig_c = go.Figure(go.Bar(
         y=cdf[col],
-        x=cdf["failure_rate"] * 100,
-        mode="lines+markers+text",
-        marker=dict(color="#D72638", size=10),
-        line=dict(color="#D72638", width=2, dash="dot"),
-        text=cdf["failure_rate"].apply(lambda v: f"{v*100:.0f}%"),
-        textposition="middle right",
-        name="Failure rate (%)",
-        xaxis="x2",
+        x=cdf["fade_abs_gbp"],
+        orientation="h",
+        marker_color=bar_colour,
+        text=cdf["fade_abs_gbp"].apply(lambda v: f"\u00a3{v/1e6:,.1f}M"),
+        textposition="outside",
+        customdata=customdata,
+        hovertemplate=(
+            "<b>%{y}</b><br>"
+            "Total fade: \u00a3%{x:,.0f}<br>"
+            "Median error: \u00a3%{customdata[0]:,.0f}<br>"
+            "Failure rate: %{customdata[1]:.1f}%"
+            "<extra></extra>"
+        ),
     ))
 
     fig_c.update_layout(
-        title=chart_title,
+        title=f"Forecast fade by {label}",
         title_font_size=14,
-        height=max(300, len(cdf) * 55),
-        margin=dict(l=10, r=10, t=40, b=40),
+        height=max(260, len(cdf) * 45),
+        margin=dict(l=10, r=100, t=40, b=10),
         plot_bgcolor="white",
+        xaxis_title="Total fade (\u00a3)",
         yaxis=dict(autorange="reversed"),
-        xaxis=dict(
-            title=x_title,
-            tickprefix="\u00a3", tickformat=",.0f", gridcolor="#EEE",
-            side="bottom",
-        ),
-        xaxis2=dict(
-            title="Failure rate (%)",
-            ticksuffix="%",
-            overlaying="x",
-            side="top",
-            gridcolor="rgba(0,0,0,0)",
-            range=[0, max(cdf["failure_rate"].max() * 100 * 1.3, 10)],
-        ),
-        legend=dict(orientation="h", y=-0.25, x=0.5, xanchor="center"),
-        hovermode="y unified",
     )
-    container.plotly_chart(fig_c, use_container_width=True)
-
-
-with fade_tab:
-    st.caption(
-        "Bars show total absolute fade (\u00a3) per cohort \u2014 "
-        "the bigger the bar, the more that cohort\u2019s forecasts shrink "
-        "between first and final revision. Red dotted line = failure rate."
-    )
-    for label, col in COHORT_DIMENSIONS.items():
-        _cohort_chart(
-            st, label, col,
-            bar_x="fade_abs_gbp",
-            bar_text_fn=lambda v: f"\u00a3{v/1e6:,.1f}M",
-            x_title="Total fade (\u00a3)",
-            chart_title=f"Forecast fade by {label}",
-        )
-
-with median_tab:
-    st.caption(
-        "Bars show the median absolute forecast error (\u00a3) per cohort \u2014 "
-        "a robust measure of typical error size, resistant to outliers. "
-        "Red dotted line = failure rate."
-    )
-    for label, col in COHORT_DIMENSIONS.items():
-        _cohort_chart(
-            st, label, col,
-            bar_x="median_abs_error_gbp",
-            bar_text_fn=lambda v: f"\u00a3{v/1e6:,.2f}M" if v >= 1e6 else f"\u00a3{v/1e3:,.0f}k",
-            x_title="Median |error| (\u00a3)",
-            chart_title=f"Median forecast error by {label}",
-        )
+    fig_c.update_xaxes(tickprefix="\u00a3", tickformat=",.0f", gridcolor="#EEE")
+    st.plotly_chart(fig_c, use_container_width=True)
