@@ -366,6 +366,8 @@ def render_programme_director(latest: pd.DataFrame, fact: pd.DataFrame,
               delta_color="inverse" if fail_rate > 20 else "normal")
 
     st.divider()
+    st.image("assets/power_bi_dashboard.png", use_container_width=True)
+    st.divider()
 
     # 2026 portfolio forecast band — the hero chart
     st.markdown("### 2026 portfolio forecast \u2014 P10 / P50 / P90 confidence band")
@@ -519,6 +521,8 @@ def render_cfo(latest: pd.DataFrame, fact: pd.DataFrame,
     k4.metric("Flexible Capital Free", _fmt_gbp(flex_remaining))
     k5.metric("Failure Rate", f"{fail_rate:.1f}%")
 
+    st.divider()
+    st.image("assets/power_bi_dashboard.png", use_container_width=True)
     st.divider()
 
     # Envelope vs Forecast vs Actual
@@ -677,6 +681,8 @@ def render_commercial_manager(latest: pd.DataFrame, fact: pd.DataFrame,
     k4.metric("Commercial actions queued", len(commercial_q))
 
     st.divider()
+    st.image("assets/power_bi_dashboard.png", use_container_width=True)
+    st.divider()
 
     # Supplier league with conditional formatting
     st.markdown("### Supplier league \u2014 ranked by forecast fade")
@@ -800,6 +806,8 @@ def render_project_controls(latest: pd.DataFrame, fact: pd.DataFrame,
     k3.metric("Failure Rate", f"{fail_rate:.1f}%")
     k4.metric("Supplier Profiles", n_profiles)
 
+    st.divider()
+    st.image("assets/power_bi_dashboard.png", use_container_width=True)
     st.divider()
 
     # Stability by supplier
