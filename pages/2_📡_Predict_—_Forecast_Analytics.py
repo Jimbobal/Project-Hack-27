@@ -141,6 +141,12 @@ COHORT_COLOURS = {
     "Programme Phase":  "#D72638",
 }
 
+cohort_view = st.radio(
+    "Metric view:",
+    ["Total Fade + Failure Rate", "Median Error + Failure Rate"],
+    horizontal=True, key="cohort_metric_toggle",
+)
+
 for label, col in COHORT_DIMENSIONS.items():
     cdf = aggregate_cohort(fact, col)
     if cdf.empty:
@@ -148,26 +154,34 @@ for label, col in COHORT_DIMENSIONS.items():
         continue
 
     bar_colour = COHORT_COLOURS.get(label, "#1E2761")
-
     fig_c = go.Figure()
 
-    # Bars: total fade (primary x-axis)
-    # Include median error in the bar text label
-    bar_labels = [
-        f"\u00a3{fade/1e6:,.1f}M  \u00b7  median error \u00a3{med/1e3:,.0f}k"
-        for fade, med in zip(cdf["fade_abs_gbp"], cdf["median_abs_error_gbp"])
-    ]
-    fig_c.add_trace(go.Bar(
-        y=cdf[col],
-        x=cdf["fade_abs_gbp"],
-        orientation="h",
-        marker_color=bar_colour,
-        text=bar_labels,
-        textposition="outside",
-        name="Total fade (\u00a3)",
-    ))
+    if cohort_view == "Total Fade + Failure Rate":
+        fig_c.add_trace(go.Bar(
+            y=cdf[col],
+            x=cdf["fade_abs_gbp"],
+            orientation="h",
+            marker_color=bar_colour,
+            text=cdf["fade_abs_gbp"].apply(lambda v: f"\u00a3{v/1e6:,.1f}M"),
+            textposition="outside",
+            name="Total fade (\u00a3)",
+        ))
+        x_title = "Total fade (\u00a3)"
+    else:
+        fig_c.add_trace(go.Bar(
+            y=cdf[col],
+            x=cdf["median_abs_error_gbp"],
+            orientation="h",
+            marker_color=bar_colour,
+            text=cdf["median_abs_error_gbp"].apply(
+                lambda v: f"\u00a3{v/1e6:,.2f}M" if v >= 1e6 else f"\u00a3{v/1e3:,.0f}k"
+            ),
+            textposition="outside",
+            name="Median |error| (\u00a3)",
+        ))
+        x_title = "Median absolute error (\u00a3)"
 
-    # Line: failure rate on secondary top x-axis
+    # Failure rate on secondary top x-axis (both views)
     fig_c.add_trace(go.Scatter(
         y=cdf[col],
         x=cdf["failure_rate"] * 100,
@@ -181,14 +195,15 @@ for label, col in COHORT_DIMENSIONS.items():
     ))
 
     fig_c.update_layout(
-        title=f"Forecast fade by {label}",
+        title=f"Forecast fade by {label}" if cohort_view.startswith("Total")
+              else f"Median forecast error by {label}",
         title_font_size=14,
         height=max(300, len(cdf) * 55),
         margin=dict(l=10, r=10, t=40, b=40),
         plot_bgcolor="white",
         yaxis=dict(autorange="reversed"),
         xaxis=dict(
-            title="Total fade (\u00a3)",
+            title=x_title,
             tickprefix="\u00a3", tickformat=",.0f", gridcolor="#EEE",
             side="bottom",
         ),
