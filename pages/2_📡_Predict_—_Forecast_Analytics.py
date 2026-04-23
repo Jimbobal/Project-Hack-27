@@ -141,8 +141,6 @@ COHORT_COLOURS = {
     "Programme Phase":  "#D72638",
 }
 
-from plotly.subplots import make_subplots
-
 for label, col in COHORT_DIMENSIONS.items():
     cdf = aggregate_cohort(fact, col)
     if cdf.empty:
@@ -151,34 +149,25 @@ for label, col in COHORT_DIMENSIONS.items():
 
     bar_colour = COHORT_COLOURS.get(label, "#1E2761")
 
-    fig_c = make_subplots(
-        specs=[[{"secondary_y": True}]],
-    )
+    fig_c = go.Figure()
 
     # Bars: total fade (primary x-axis)
+    # Include median error in the bar text label
+    bar_labels = [
+        f"\u00a3{fade/1e6:,.1f}M  \u00b7  median error \u00a3{med/1e3:,.0f}k"
+        for fade, med in zip(cdf["fade_abs_gbp"], cdf["median_abs_error_gbp"])
+    ]
     fig_c.add_trace(go.Bar(
         y=cdf[col],
         x=cdf["fade_abs_gbp"],
         orientation="h",
         marker_color=bar_colour,
-        text=cdf["fade_abs_gbp"].apply(lambda v: f"\u00a3{v/1e6:,.1f}M"),
+        text=bar_labels,
         textposition="outside",
         name="Total fade (\u00a3)",
-    ), secondary_y=False)
+    ))
 
-    # Markers: mean absolute error (primary x-axis, overlaid)
-    fig_c.add_trace(go.Scatter(
-        y=cdf[col],
-        x=cdf["mean_abs_error_gbp"],
-        mode="markers+text",
-        marker=dict(color="#CADCFC", size=12, symbol="diamond",
-                    line=dict(width=1, color=bar_colour)),
-        text=cdf["mean_abs_error_gbp"].apply(lambda v: f"\u00a3{v/1e3:,.0f}k"),
-        textposition="middle right",
-        name="Mean |error| (\u00a3)",
-    ), secondary_y=False)
-
-    # Line: failure rate (secondary y-axis mapped to x2)
+    # Line: failure rate on secondary top x-axis
     fig_c.add_trace(go.Scatter(
         y=cdf[col],
         x=cdf["failure_rate"] * 100,
@@ -194,12 +183,12 @@ for label, col in COHORT_DIMENSIONS.items():
     fig_c.update_layout(
         title=f"Forecast fade by {label}",
         title_font_size=14,
-        height=max(300, len(cdf) * 50),
+        height=max(300, len(cdf) * 55),
         margin=dict(l=10, r=10, t=40, b=40),
         plot_bgcolor="white",
         yaxis=dict(autorange="reversed"),
         xaxis=dict(
-            title="Total fade / Mean |error| (\u00a3)",
+            title="Total fade (\u00a3)",
             tickprefix="\u00a3", tickformat=",.0f", gridcolor="#EEE",
             side="bottom",
         ),
