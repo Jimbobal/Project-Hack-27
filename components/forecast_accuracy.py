@@ -72,6 +72,7 @@ def _fit_driver(latest: pd.DataFrame, driver_col: str) -> pd.DataFrame:
         edf["intercept"] = model.intercept_
         edf["r2"] = r2
         edf["residual_std"] = residual_std
+        edf["is_holdout"] = edf["Forecast_Period"] == last_period
         rows.append(edf)
 
     if not rows:

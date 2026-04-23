@@ -74,14 +74,19 @@ else:
         edf["upper"] = edf["Predicted_Actual_Spend"] + 1.96 * r_std
         edf["lower"] = edf["Predicted_Actual_Spend"] - 1.96 * r_std
         edf["error"] = edf["Actual_Spend"] - edf["Predicted_Actual_Spend"]
-        edf["outside_band"] = (
-            (edf["Actual_Spend"] > edf["upper"]) |
-            (edf["Actual_Spend"] < edf["lower"])
+
+        # Split into training periods (Jan-Nov) and holdout (Dec)
+        train_df = edf[~edf["is_holdout"]].copy()
+        holdout_df = edf[edf["is_holdout"]].copy()
+
+        train_df["outside_band"] = (
+            (train_df["Actual_Spend"] > train_df["upper"]) |
+            (train_df["Actual_Spend"] < train_df["lower"])
         )
 
         fig = go.Figure()
 
-        # Confidence band
+        # Confidence band (all periods including Dec forecast)
         fig.add_trace(go.Scatter(
             x=edf["Forecast_Period"], y=edf["upper"],
             line=dict(width=0), showlegend=False, hoverinfo="skip",
@@ -93,7 +98,7 @@ else:
             name="95% confidence band",
         ))
 
-        # Predicted line
+        # Predicted line (all periods)
         fig.add_trace(go.Scatter(
             x=edf["Forecast_Period"], y=edf["Predicted_Actual_Spend"],
             mode="lines+markers",
@@ -108,9 +113,9 @@ else:
             ),
         ))
 
-        # Actuals — split in-band (green) vs out-of-band (red)
-        in_band = edf[~edf["outside_band"]]
-        out_band = edf[edf["outside_band"]]
+        # Actuals — only Jan-Nov (training), split in-band vs out-of-band
+        in_band = train_df[~train_df["outside_band"]]
+        out_band = train_df[train_df["outside_band"]]
 
         if not in_band.empty:
             fig.add_trace(go.Scatter(
@@ -144,6 +149,22 @@ else:
                 ),
             ))
 
+        # December forecast marker — distinct style
+        if not holdout_df.empty:
+            fig.add_trace(go.Scatter(
+                x=holdout_df["Forecast_Period"],
+                y=holdout_df["Predicted_Actual_Spend"],
+                mode="markers",
+                marker=dict(color="#FFB800", size=14, symbol="star",
+                            line=dict(width=2, color="#1E2761")),
+                name="Dec forecast (holdout)",
+                hovertemplate=(
+                    "<b>%{x} \u2014 Forecast</b><br>"
+                    "Predicted: \u00a3%{y:,.0f}<br>"
+                    "Model trained on Jan\u2013Nov only<extra></extra>"
+                ),
+            ))
+
         r2 = edf["r2"].iloc[0]
         fig.update_layout(
             height=460, margin=dict(l=10, r=10, t=30, b=10),
@@ -151,22 +172,44 @@ else:
             yaxis_title="\u00a3 spend",
             legend=dict(orientation="h", y=-0.18),
             hovermode="x unified",
-            title_text=f"{sel_entity}  \u00b7  R\u00b2 = {r2:.3f}",
+            title_text=f"{sel_entity}  \u00b7  R\u00b2 = {r2:.3f}  \u00b7  Trained Jan\u2013Nov, forecasting Dec",
             title_font_size=14,
         )
         fig.update_yaxes(tickprefix="\u00a3", tickformat=",.0f", gridcolor="#EEE")
         fig.update_xaxes(gridcolor="#EEE")
         st.plotly_chart(fig, use_container_width=True)
 
-        n_outside = edf["outside_band"].sum()
+        # Headline: December forecast vs actual
+        if not holdout_df.empty:
+            dec = holdout_df.iloc[0]
+            predicted = dec["Predicted_Actual_Spend"]
+            actual = dec["Actual_Spend"]
+            diff = actual - predicted
+            diff_pct = diff / predicted * 100 if predicted else 0
+            within = dec["lower"] <= actual <= dec["upper"]
+
+            if within:
+                verdict = ":green[within the 95% confidence band]"
+            else:
+                verdict = ":red[outside the 95% confidence band]"
+
+            st.markdown(
+                f"**December forecast for {sel_entity}:** "
+                f"the model predicted **\u00a3{predicted/1e6:,.2f}M** based on the forecast spend. "
+                f"Actual December spend was **\u00a3{actual/1e6:,.2f}M** "
+                f"(**\u00a3{diff/1e6:+,.2f}M** / {diff_pct:+.1f}%), "
+                f"{verdict}."
+            )
+
+        n_outside = train_df["outside_band"].sum() if not train_df.empty else 0
         if n_outside:
             st.caption(
-                f":red[{n_outside} period(s) fall outside the 95% confidence band] "
+                f":red[{n_outside} training period(s) fall outside the 95% confidence band] "
                 f"\u2014 these are systemic misses worth investigating."
             )
         else:
             st.caption(
-                ":green[All actuals fall within the 95% confidence band] "
+                ":green[All training-period actuals fall within the 95% confidence band] "
                 "\u2014 this entity's forecast-to-actual relationship is stable."
             )
 
