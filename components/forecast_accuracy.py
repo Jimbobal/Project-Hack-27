@@ -5,6 +5,11 @@ Adapts the attached app.py methodology: for each driver (Supplier_ID,
 Contract_Type, Programme_ID), fit a LinearRegression of Actual_Spend on
 Forecast_Spend per entity, then compare predicted vs actual to quantify
 which driver class contributes the most systemic forecast error.
+
+Data prep mirrors the uploaded file exactly:
+  - latest revision per (Forecast_Period, Supplier_ID, Programme_ID)
+  - merge Contract_Type from Supplier_Attributes
+  - group+sum by (Forecast_Period, <driver>)
 """
 
 from __future__ import annotations
@@ -22,8 +27,29 @@ DRIVERS = {
 }
 
 
+@st.cache_data(show_spinner="Preparing combined data…")
+def _build_combined(raw: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    """
+    Replicate the uploaded file's data preparation exactly:
+    latest revision per (Forecast_Period, Supplier_ID, Programme_ID),
+    merged with Contract_Type from Supplier_Attributes.
+    """
+    fc = raw["Forecast_Data"].copy()
+    sup = raw["Supplier_Attributes"][["Supplier_ID", "Contract_Type"]].copy()
+
+    # Keep only latest revision per (Forecast_Period, Supplier_ID, Programme_ID)
+    fc = fc.loc[
+        fc.groupby(["Forecast_Period", "Supplier_ID", "Programme_ID"])
+        ["Revision_Number"].idxmax()
+    ]
+
+    combined = fc.merge(sup, on="Supplier_ID")
+    return combined[["Forecast_Period", "Supplier_ID", "Contract_Type",
+                      "Programme_ID", "Forecast_Spend", "Actual_Spend"]]
+
+
 @st.cache_data(show_spinner="Fitting per-entity regressions…")
-def _fit_driver(latest: pd.DataFrame, driver_col: str) -> pd.DataFrame:
+def _fit_driver(raw: dict[str, pd.DataFrame], driver_col: str) -> pd.DataFrame:
     """
     For every entity in *driver_col*, fit Forecast_Spend → Actual_Spend
     using Jan–Nov data (matching attached file's holdout logic), then
@@ -33,11 +59,10 @@ def _fit_driver(latest: pd.DataFrame, driver_col: str) -> pd.DataFrame:
         Forecast_Period, <driver_col>, Forecast_Spend, Actual_Spend,
         Predicted_Actual_Spend, slope, intercept, r2, residual_std
     """
-    df = latest.copy()
-    df["Forecast_Period"] = df["period"].dt.to_timestamp().dt.strftime("%Y-%m")
+    combined = _build_combined(raw)
 
     agg = (
-        df.groupby(["Forecast_Period", driver_col])
+        combined.groupby(["Forecast_Period", driver_col])
         .agg(Forecast_Spend=("Forecast_Spend", "sum"),
              Actual_Spend=("Actual_Spend", "sum"))
         .reset_index()
@@ -81,27 +106,27 @@ def _fit_driver(latest: pd.DataFrame, driver_col: str) -> pd.DataFrame:
     return pd.concat(rows, ignore_index=True)
 
 
-def fit_supplier(latest: pd.DataFrame) -> pd.DataFrame:
-    return _fit_driver(latest, "Supplier_ID")
+def fit_supplier(raw: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    return _fit_driver(raw, "Supplier_ID")
 
 
-def fit_contract(latest: pd.DataFrame) -> pd.DataFrame:
-    return _fit_driver(latest, "Contract_Type")
+def fit_contract(raw: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    return _fit_driver(raw, "Contract_Type")
 
 
-def fit_programme(latest: pd.DataFrame) -> pd.DataFrame:
-    return _fit_driver(latest, "Programme_ID")
+def fit_programme(raw: dict[str, pd.DataFrame]) -> pd.DataFrame:
+    return _fit_driver(raw, "Programme_ID")
 
 
 @st.cache_data(show_spinner="Computing driver impact…")
-def driver_impact(latest: pd.DataFrame) -> pd.DataFrame:
+def driver_impact(raw: dict[str, pd.DataFrame]) -> pd.DataFrame:
     """
     Total absolute prediction error for each driver class.
     Returns DataFrame with columns: driver, total_abs_error, mean_abs_error, r2_mean
     """
     results = []
     for label, col in DRIVERS.items():
-        pred = _fit_driver(latest, col)
+        pred = _fit_driver(raw, col)
         if pred.empty:
             continue
         pred["abs_error"] = (pred["Actual_Spend"] - pred["Predicted_Actual_Spend"]).abs()
@@ -115,11 +140,11 @@ def driver_impact(latest: pd.DataFrame) -> pd.DataFrame:
 
 
 @st.cache_data
-def entity_drilldown(latest: pd.DataFrame, driver_col: str, top_n: int = 10) -> pd.DataFrame:
+def entity_drilldown(raw: dict[str, pd.DataFrame], driver_col: str, top_n: int = 10) -> pd.DataFrame:
     """
     Top-N entities within a driver ranked by absolute prediction error.
     """
-    pred = _fit_driver(latest, driver_col)
+    pred = _fit_driver(raw, driver_col)
     if pred.empty:
         return pd.DataFrame()
     pred["abs_error"] = (pred["Actual_Spend"] - pred["Predicted_Actual_Spend"]).abs()

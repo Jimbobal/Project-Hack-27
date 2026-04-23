@@ -12,7 +12,7 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
-from components.data_loader import load_raw, build_fact, build_latest
+from components.data_loader import load_raw
 from components.forecast_accuracy import (
     fit_supplier, fit_contract, fit_programme,
     driver_impact, entity_drilldown, DRIVERS,
@@ -35,8 +35,6 @@ st.caption(
 # Data
 # -------------------------------------------------------------------
 raw = load_raw()
-fact = build_fact(raw)
-latest = build_latest(fact)
 
 # -------------------------------------------------------------------
 # 1. Predictions vs Actuals chart
@@ -53,7 +51,7 @@ sel_driver = st.radio(
     "View by driver:", list(DRIVERS.keys()), horizontal=True, index=0,
 )
 driver_col = DRIVERS[sel_driver]
-pred_df = FIT_FNS[sel_driver](latest)
+pred_df = FIT_FNS[sel_driver](raw)
 
 if pred_df.empty:
     st.info("Not enough data to fit regressions for this driver.")
@@ -220,7 +218,7 @@ st.divider()
 # -------------------------------------------------------------------
 st.markdown("### Driver impact ranking")
 
-impact = driver_impact(latest)
+impact = driver_impact(raw)
 
 if impact.empty:
     st.info("Not enough data to compute driver impact.")
@@ -283,7 +281,7 @@ drill_driver = st.radio(
 )
 drill_col = DRIVERS[drill_driver]
 
-drill = entity_drilldown(latest, drill_col, top_n=10)
+drill = entity_drilldown(raw, drill_col, top_n=10)
 
 if drill.empty:
     st.info(f"Not enough data to drill down into {drill_driver.lower()}s.")
